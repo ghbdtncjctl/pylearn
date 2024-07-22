@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up Page</title>
+</head>
+<body>
+  <h1>Регистрация</h1>
+  <img src="{{ url_for('static', filename='fon.jpeg') }}">
+  <div style='position:fixed;left:40%;top:40%;background-color:white;'>
+  <form action="/signup" method="post">
+    <label for="username">Имя пользователя:</label>
+    <input type="text" id="username" name="username" required><br><br>
+    
+    <label for="email">Желаемый адрес электронной почты:</label>
+    <input type="email" id="email" name="email" required><br><br>
+    
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" name="password" required><br><br>
+    
+    <input type="submit" value="Зарегистрироваться">
+  </form>
+  <div id="message-container"></div>
+  </div>
+  
+  <script>
+    const messageContainer = document.getElementById('message-container');
+    
+    // Function to display the message from the server
+    function displayMessage(message, status) {
+      messageContainer.innerHTML = '';
+      const messageElement = document.createElement('p');
+      messageElement.textContent = message;
+      messageElement.className = status === 200 ? 'success' : 'error';
+      messageContainer.appendChild(messageElement);
+    }
+    
+    // Add event listener to the form submission
+    document.querySelector('form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      
+      // Send a POST request to the server
+      fetch('/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Display the message from the server
+        displayMessage(data.message, data.status);
+        
+        // Clear the form fields
+        document.getElementById('username').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        displayMessage('An error occurred. Please try again.', 500);
+      });
+    });
+  </script>
+</body>
+</html>

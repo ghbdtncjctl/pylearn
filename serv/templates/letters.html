@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Letters Page</title>
+</head>
+<body>
+  <img src="{{ url_for('static', filename='fon.jpeg') }}">
+  <div style='position:absolute;left:40%;top:25%;background-color:white;'>
+  <h1>Письма</h1>
+  
+  {% if letter_data %}
+  <ul>
+      {% for letter in letter_data %}
+          <li>
+              <h3>{{letter.id}}  {{ letter.sender }}</h3>
+              <p>{{ letter.content }}</p>
+          </li>
+      {% endfor %}
+  </ul>
+{% else %}
+  <p>Нет писем.</p>
+{% endif %}
+  
+  <h2>Создать письмо</h2>
+  <form id="create-letter-form" action="/letters" method="POST">
+    <label for="receiver">Почта получателя:</label>
+    <input type="text" id="receiver" name="receiver" required></input><br><br>
+    <label for="content">Сообщение:</label>
+    <input type="text" id="content" name="content" required></input><br><br>
+    <input type="submit" value="Отправить">
+  </form>
+  <div id="create-letter-form-messages"></div>
+  <script>
+    const messageContainer = document.getElementById('create-letter-form-messages');
+    
+    // Function to display the message from the server
+    function displayMessage(message, status) {
+      messageContainer.innerHTML = '';
+      const messageElement = document.createElement('p');
+      messageElement.textContent = message;
+      messageElement.className = status === 200 ? 'success' : 'error';
+      messageContainer.appendChild(messageElement);
+    }
+    document.getElementById('create-letter-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+  
+  // Send a POST request to the server
+    fetch('/letters', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+      receiver: document.getElementById('receiver').value,
+      content: document.getElementById('content').value
+    })
+    })
+    .then(response => {
+      if (response.redirected) {
+         window.location = response.url
+          return
+      } else {
+         return response.json()
+      }
+    })
+    .then(data => {
+      document.getElementById('content').value = '';
+      document.getElementById('receiver').value = '';
+      displayMessage(data.message, data.status);
+      if (data.status<300) {
+      document.location.reload();}
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      displayMessage('An error occurred. Please try again.', 500);
+    });
+  } );
+  </script>
+  
+  <h2>Удалить письмо</h2>
+  <form id="delete-letter-form">
+    <label for="letter-id">Номер письма:</label>
+    <input type="text" id="letter-id" name="id">
+    <input type="submit" value="Удалить письмо">
+  </form>
+  <div id="delete-letter-form-messages"></div>
+  <script>
+    const DeletemessageContainer = document.getElementById('delete-letter-form-messages');
+    
+    // Function to display the message from the server
+    function displayMessage(message, status) {
+      DeletemessageContainer.innerHTML = '';
+      const messageElement = document.createElement('p');
+      messageElement.textContent = message;
+      messageElement.className = status === 200 ? 'success' : 'error';
+      DeletemessageContainer.appendChild(messageElement);
+    }
+    document.getElementById('delete-letter-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    fetch('/letters', {
+    method: 'Delete',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+    id: document.getElementById('letter-id').value,
+  })
+  })
+  .then(response => {
+    if (response.redirected) {
+       window.location = response.url
+        return
+    } else {
+       return response.json()
+    }
+  })
+  .then(data => {
+    displayMessage(data.message, data.status);
+   document.getElementById('letter-id').value = '';
+   if (data.status<300) {
+      document.location.reload();}
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    displayMessage('An error occurred. Please try again.', 500);
+  });
+} );
+</script>
+</div>
+</body> 
+</html>
